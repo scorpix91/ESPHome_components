@@ -756,7 +756,7 @@ BMI270Sensor::imu_spec_t BMI270Sensor::getImuRawData(imu_raw_data_t *data)
   ESP_LOGVV(TAG, "intstat: %02X", intstat);
   if (intstat & 0xC0) //E0
   {
-    std::int16_t buf[7];
+    std::int16_t buf[6];
     auto buffer = this->read_register(ACC_X_LSB_ADDR, (std::uint8_t*)&buf, 12);
     ESP_LOGVV(TAG, "buf: %02X, buffer: %02X", buf, buffer);
 
@@ -766,18 +766,18 @@ BMI270Sensor::imu_spec_t BMI270Sensor::getImuRawData(imu_raw_data_t *data)
     {
       if (intstat & 0x80u)
       {
-        data->accel.x = buf[1];
-        data->accel.y = buf[2];
-        data->accel.z = buf[3];
-        ESP_LOGVV(TAG, "accelX: %02X", buf[1]);
+        data->accel.x = buf[0];
+        data->accel.y = buf[1];
+        data->accel.z = buf[2];
+        ESP_LOGVV(TAG, "accelX: %02X", buf[0]);
         res = (imu_spec_t)(res | imu_spec_accel);
       }
       if (intstat & 0x40u)
       {
-        data->gyro.x = buf[4];
-        data->gyro.y = buf[5];
-        data->gyro.z = buf[6];
-        ESP_LOGVV(TAG, "gyroX: %02X", buf[4]);
+        data->gyro.x = buf[3];
+        data->gyro.y = buf[4];
+        data->gyro.z = buf[5];
+        ESP_LOGVV(TAG, "gyroX: %02X", buf[3]);
         res = (imu_spec_t)(res | imu_spec_gyro);
       }
     }
