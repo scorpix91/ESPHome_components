@@ -27,7 +27,7 @@ DEPENDENCIES = ["i2c"]
 
 bmi270_ns = cg.esphome_ns.namespace("bmi270")
 BMI270Sensor = bmi270_ns.class_(
-    "BMI270BMM150Sensor", cg.PollingComponent, i2c.I2CDevice
+    "BMI270Sensor", cg.PollingComponent, i2c.I2CDevice
 )
 
 accel_schema = {
