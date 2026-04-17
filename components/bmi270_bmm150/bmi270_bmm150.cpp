@@ -469,7 +469,7 @@ static constexpr const uint8_t TEMPERATURE_0_ADDR      = 0x22;
 static constexpr const uint8_t SOFT_RESET_CMD          = 0xB6;
 
 void BMI270BMM150Sensor::setup() {
-  enable_auxilliary_sensor_ = true;
+  enable_auxilliary_sensor_ = false;
   this->internal_setup_(0);
 }
 
@@ -525,12 +525,12 @@ void BMI270BMM150Sensor::internal_setup_(int stage, int retry) {
       // load initial configuration
       ESP_LOGV(TAG, "Prepare config load");
       uint8_t init_ctrl = 0x00;
-      write_register_(INIT_CTRL_ADDR, &init_ctrl); // prepare config load
+      _(INIT_CTRL_ADDR, &init_ctrl); // prepare config load
       bool upload_succesful = _upload_file(DEFAULT_CONFIGURATION, sizeof(DEFAULT_CONFIGURATION)); // burst write to reg INIT_DATA start with byte 0
       init_ctrl = 0x01;
-      write_register_(INIT_CTRL_ADDR, &init_ctrl); // complete config load
+      _(INIT_CTRL_ADDR, &init_ctrl); // complete config load
       uint8_t int_map_data = 0xFF;
-      write_register_(INT_MAP_DATA_ADDR, &int_map_data, 1);
+      _(INT_MAP_DATA_ADDR, &int_map_data, 1);
 
       // return the IMU specification
       if (!upload_succesful)
@@ -586,21 +586,21 @@ void BMI270BMM150Sensor::internal_setup_auxilliary_sensor_(int stage, int retry)
 
       // set up auxiliary sensor
       uint8_t aux_i2c_enable = 0x20;
-      write_register_(IF_CONF_ADDR, &aux_i2c_enable); // AUX I2C enable.
+      _(IF_CONF_ADDR, &aux_i2c_enable); // AUX I2C enable.
       uint8_t pwr_save_disable = 0x00;
-      write_register_(PWR_CONF_ADDR, &pwr_save_disable); // Power save disabled.
+      _(PWR_CONF_ADDR, &pwr_save_disable); // Power save disabled.
       uint8_t aux_sensor_disable = 0x0E;
-      write_register_(PWR_CTRL_ADDR, &aux_sensor_disable); // Power save disabled.
+      _(PWR_CTRL_ADDR, &aux_sensor_disable); // Power save disabled.
       uint8_t aux_if_conf = 0x80;
-      write_register_(AUX_IF_CONF_ADDR, &aux_if_conf);
+      _(AUX_IF_CONF_ADDR, &aux_if_conf);
       uint8_t ic2_add_op = auxilliary_sensor_address_ << 1;  // 0x10 = BMM150 I2C Addr
-      write_register_(AUX_DEV_ID_ADDR, &ic2_add_op);
+      _(AUX_DEV_ID_ADDR, &ic2_add_op);
 
       // aux software reset & power on
       uint8_t aux_swreset = 0x83;
-      write_register_(AUX_WR_DATA_ADDR, &aux_swreset);
+      _(AUX_WR_DATA_ADDR, &aux_swreset);
       uint8_t aux_register = 0x4B;
-      write_register_(AUX_WR_ADDR, &aux_register);
+      _(AUX_WR_ADDR, &aux_register);
 
       this->internal_setup_auxilliary_sensor_(1, 3);
 
@@ -616,9 +616,9 @@ void BMI270BMM150Sensor::internal_setup_auxilliary_sensor_(int stage, int retry)
         }
 
         uint8_t aux_enable_rw = 0x80;
-        write_register_(AUX_IF_CONF_ADDR, &aux_enable_rw); // enable read write
+        _(AUX_IF_CONF_ADDR, &aux_enable_rw); // enable read write
         uint8_t aux_read_address = 0x40;
-        write_register_(AUX_RD_ADDR, &aux_read_address); // register number to read from AUX sensor
+        _(AUX_RD_ADDR, &aux_read_address); // register number to read from AUX sensor
 
         this->internal_setup_auxilliary_sensor_(2);
       });
@@ -630,9 +630,9 @@ void BMI270BMM150Sensor::internal_setup_auxilliary_sensor_(int stage, int retry)
       if (this->read_byte(AUX_X_LSB_ADDR, &whoami) && whoami == 0x32) {
         // aux normal mode / ODR 30Hz
         uint8_t normal_mode = 0x38;
-        write_register_(AUX_WR_DATA_ADDR, &normal_mode);
+        _(AUX_WR_DATA_ADDR, &normal_mode);
         uint8_t aux_register = 0x4C;
-        write_register_(AUX_WR_ADDR, &aux_register);
+        _(AUX_WR_ADDR, &aux_register);
 
         this->internal_setup_auxilliary_sensor_(3, 3);
       }
@@ -649,11 +649,11 @@ void BMI270BMM150Sensor::internal_setup_auxilliary_sensor_(int stage, int retry)
 
         specification_ = (imu_spec_t)(imu_spec_accel | imu_spec_gyro | imu_spec_mag);
         uint8_t fcu_write_en = 0x4F;
-        write_register_(AUX_IF_CONF_ADDR, &fcu_write_en); // FCU_WRITE_EN + Manual BurstLength 8 + BurstLength 8
+        _(AUX_IF_CONF_ADDR, &fcu_write_en); // FCU_WRITE_EN + Manual BurstLength 8 + BurstLength 8
         uint8_t bmm150_data_lsb = 0x42;
-        write_register_(AUX_RD_ADDR, &bmm150_data_lsb);  // 0x42 = BMM150 I2C Data X LSB reg
+        _(AUX_RD_ADDR, &bmm150_data_lsb);  // 0x42 = BMM150 I2C Data X LSB reg
         uint8_t temp_en = 0x0F;
-        write_register_(PWR_CTRL_ADDR, &temp_en); // temp en | ACC en | GYR en | AUX en
+        _(PWR_CTRL_ADDR, &temp_en); // temp en | ACC en | GYR en | AUX en
         
 
         this->setup_complete_ = true;
@@ -676,8 +676,8 @@ bool BMI270BMM150Sensor::_upload_file(const uint8_t *config_data, size_t write_l
   };
 
   if (config_data != nullptr
-    && this->write_register_( INIT_ADDR_0, addr_array, 2 )
-    && this->write_register_( INIT_DATA_ADDR, (uint8_t *)config_data, write_len))
+    && this->_( INIT_ADDR_0, addr_array, 2 )
+    && this->_( INIT_DATA_ADDR, (uint8_t *)config_data, write_len))
   {
     return true;
   }
@@ -687,15 +687,15 @@ bool BMI270BMM150Sensor::_upload_file(const uint8_t *config_data, size_t write_l
 // bool BMI270BMM150Sensor::auxSetupMode(uint8_t i2c_addr)
 // {
 //   uint8_t aux_i2c_enable = 0x01;
-//   write_register_(IF_CONF_ADDR, &aux_i2c_enable); // AUX I2C enable.
+//   _(IF_CONF_ADDR, &aux_i2c_enable); // AUX I2C enable.
 //   uint8_t pwr_save_disable = 0x00;
-//   write_register_(PWR_CONF_ADDR, &pwr_save_disable); // Power save disabled.
+//   _(PWR_CONF_ADDR, &pwr_save_disable); // Power save disabled.
 //   uint8_t aux_sensor_disable = 0x0E;
-//   write_register_(PWR_CTRL_ADDR, &aux_sensor_disable); // Power save disabled.
+//   _(PWR_CTRL_ADDR, &aux_sensor_disable); // Power save disabled.
 //   uint8_t aux_if_conf = 0x80;
-//   write_register_(AUX_IF_CONF_ADDR, &aux_if_conf);
+//   _(AUX_IF_CONF_ADDR, &aux_if_conf);
 //   uint8_t ic2_add_op = i2c_addr << 1;
-//   return write_register_(AUX_DEV_ID_ADDR, &ic2_add_op);
+//   return _(AUX_DEV_ID_ADDR, &ic2_add_op);
 // }
 
 void BMI270BMM150Sensor::checkStatus(int retry, StatusCallback callback) {
@@ -716,14 +716,14 @@ void BMI270BMM150Sensor::checkStatus(int retry, StatusCallback callback) {
 
 // bool BMI270BMM150Sensor::auxWriteRegister8(uint8_t reg, uint8_t data)
 // {
-//   write_register_(AUX_WR_DATA_ADDR, &data); // Value to write to AUX sensor
-//   write_register_(AUX_WR_ADDR, &reg);       // Register number to write to AUX sensor
+//   _(AUX_WR_DATA_ADDR, &data); // Value to write to AUX sensor
+//   _(AUX_WR_ADDR, &reg);       // Register number to write to AUX sensor
 //   int retry = 3;
 //   data = 0;
 //   do {
 //     vTaskDelay(1);
 //     //todo: replace with internal method
-//     this->read_register(STATUS_ADDR, &data, 1, true);
+//     this->read_register(STATUS_ADDR, &data, 1);
 //     ESP_LOGD(TAG, "STATUS_ADDR: %d", data);
 //   }
 //   while (data & 0b100 && --retry); //checks whether the third bit of data is set
@@ -734,31 +734,31 @@ void BMI270BMM150Sensor::checkStatus(int retry, StatusCallback callback) {
 // uint8_t BMI270BMM150Sensor::auxReadRegister8(uint8_t reg)
 // {
 //   uint8_t aux_enable_rw = 0x80;
-//   write_register_(AUX_IF_CONF_ADDR, &aux_enable_rw); // enable read write. Burst length 1
-//   write_register_(AUX_RD_ADDR, &reg);                // register number to read from AUX sensor
+//   _(AUX_IF_CONF_ADDR, &aux_enable_rw); // enable read write. Burst length 1
+//   _(AUX_RD_ADDR, &reg);                // register number to read from AUX sensor
 //   int retry = 3;
 //   uint8_t data = 0;
 //   do {
 //     vTaskDelay(1);
 //     //todo: replace with internal method
-//     this->read_register(STATUS_ADDR, &data, 1, true);
+//     this->read_register(STATUS_ADDR, &data, 1);
 //     ESP_LOGD(TAG, "STATUS_ADDR: %d", data);
 //   }
 //   while (data & 0b100 && --retry);
 
-//   return read_register(AUX_X_LSB_ADDR, &data, 1, true);
+//   return read_register(AUX_X_LSB_ADDR, &data, 1);
 // }
 
 BMI270BMM150Sensor::imu_spec_t BMI270BMM150Sensor::getImuRawData(imu_raw_data_t *data)
 {
   imu_spec_t res = imu_spec_none;
   uint8_t intstat = 0;
-  this->read_register(INT_STATUS_1_ADDR, &intstat, 1, true);
+  this->read_register(INT_STATUS_1_ADDR, &intstat, 1);
   ESP_LOGVV(TAG, "intstat: %02X", intstat);
   if (intstat & 0xE0)
   {
     std::int16_t buf[10];
-    auto buffer = this->read_register(AUX_X_LSB_ADDR, (std::uint8_t*)&buf, 20, true);
+    auto buffer = this->read_register(AUX_X_LSB_ADDR, (std::uint8_t*)&buf, 20);
     ESP_LOGVV(TAG, "buf: %02X, buffer: %02X", buf, buffer);
 
     //TODO: Acceleration & Gyro are switched (!), though the following does it like this
@@ -827,7 +827,7 @@ void BMI270BMM150Sensor::getImuData(imu_data_t *data) {
 bool BMI270BMM150Sensor::getTemp(float *t)
 {
   std::int16_t temp;
-  bool res = this->read_register(TEMPERATURE_0_ADDR, (std::uint8_t*)&temp, 2, true);
+  bool res = this->read_register(TEMPERATURE_0_ADDR, (std::uint8_t*)&temp, 2);
   ESP_LOGVV(TAG, "raw temp: %02X",temp);
   if (res == esphome::i2c::NO_ERROR) {
     *t = temp * convert_param_.temp_res + convert_param_.temp_offset;
@@ -859,7 +859,7 @@ bool BMI270BMM150Sensor::read_register_(uint8_t reg, uint8_t data) {
   }
 
   // using defaults for length (1) and stop (true)
-  this->last_error_ = this->read_register(reg, &data, 1, true);
+  this->last_error_ = this->read_register(reg, &data, 1);
   if (this->last_error_ != i2c::ERROR_OK) {
     this->status_set_warning();
     ESP_LOGE(TAG, "read_register_(): I2C I/O error: Reg=0x%02X, Data=0x%02X, Err=%d", reg, data, (int) this->last_error_);
@@ -870,14 +870,14 @@ bool BMI270BMM150Sensor::read_register_(uint8_t reg, uint8_t data) {
   return true;
 }
 
-bool BMI270BMM150Sensor::write_register_(uint8_t reg, const uint8_t *value, size_t len) {
+bool BMI270BMM150Sensor::_(uint8_t reg, const uint8_t *value, size_t len) {
   if (this->is_failed()) {
     ESP_LOGD(TAG, "Device marked failed");
     return false;
   }
 
   // using defaults for length (1) and stop (true)
-  this->last_error_ = this->write_register(reg, value, len, true);
+  this->last_error_ = this->(reg, value, len);
   if (this->last_error_ != i2c::ERROR_OK) {
     this->status_set_warning("I2C I/O error");
     ESP_LOGE(TAG, "write_register_(): I2C I/O error: Reg=0x%02X, Err=%s", reg, this->last_error_);
