@@ -870,7 +870,7 @@ bool BMI270BMM150Sensor::read_register_(uint8_t reg, uint8_t data) {
   return true;
 }
 
-bool BMI270BMM150Sensor::_(uint8_t reg, const uint8_t *value, size_t len) {
+bool BMI270BMM150Sensor::write_register_(uint8_t reg, const uint8_t *value, size_t len) {
   if (this->is_failed()) {
     ESP_LOGD(TAG, "Device marked failed");
     return false;
