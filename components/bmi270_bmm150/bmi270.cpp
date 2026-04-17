@@ -1,12 +1,12 @@
 #include "esphome/core/hal.h"
 #include "esphome/core/log.h"
 
-#include "bmi270_bmm150.h"
+#include "bmi270.h"
 
 namespace esphome {
-namespace bmi270_bmm150 {
+namespace bmi270 {
 
-static const char *const TAG = "bmi270_bmm150";
+static const char *const TAG = "bmi270";
 
 //see https://github.com/BoschSensortec/BMI270-Sensor-API/blob/master/bmi270.c
 static constexpr const uint8_t DEFAULT_CONFIGURATION[] = {
@@ -468,12 +468,12 @@ static constexpr const uint8_t TEMPERATURE_0_ADDR      = 0x22;
 // commands
 static constexpr const uint8_t SOFT_RESET_CMD          = 0xB6;
 
-void BMI270BMM150Sensor::setup() {
+void BMI270Sensor::setup() {
   enable_auxilliary_sensor_ = false;
   this->internal_setup_(0);
 }
 
-void BMI270BMM150Sensor::internal_setup_(int stage, int retry) {
+void BMI270Sensor::internal_setup_(int stage, int retry) {
   // see https://github.com/m5stack/M5Unified/blob/5d359529b05d2f92d9e91bcf09dbd47b722538d5/src/utility/imu/BMI270_Class.cpp#L35
   // and https://github.com/boschsensortec/BMI270_SensorAPI/blob/4f0b6990dfa24130052d1713147c6f35a5d3a1da/bmi270.c#L1354
 
@@ -576,7 +576,7 @@ void BMI270BMM150Sensor::internal_setup_(int stage, int retry) {
   }
 }
 
-void BMI270BMM150Sensor::internal_setup_auxilliary_sensor_(int stage, int retry) {
+void BMI270Sensor::internal_setup_auxilliary_sensor_(int stage, int retry) {
   switch (stage) {
     case 0: {
 
@@ -666,7 +666,7 @@ void BMI270BMM150Sensor::internal_setup_auxilliary_sensor_(int stage, int retry)
   }
 }
 
-bool BMI270BMM150Sensor::_upload_file(const uint8_t *config_data, size_t write_len)
+bool BMI270Sensor::_upload_file(const uint8_t *config_data, size_t write_len)
 {
   ESP_LOGV(TAG, "Uploading config (size=%d)...", write_len);
   size_t index = 0;
@@ -684,7 +684,7 @@ bool BMI270BMM150Sensor::_upload_file(const uint8_t *config_data, size_t write_l
   return true;
 }
 
-// bool BMI270BMM150Sensor::auxSetupMode(uint8_t i2c_addr)
+// bool BMI270Sensor::auxSetupMode(uint8_t i2c_addr)
 // {
 //   uint8_t aux_i2c_enable = 0x01;
 //   _(IF_CONF_ADDR, &aux_i2c_enable); // AUX I2C enable.
@@ -698,7 +698,7 @@ bool BMI270BMM150Sensor::_upload_file(const uint8_t *config_data, size_t write_l
 //   return _(AUX_DEV_ID_ADDR, &ic2_add_op);
 // }
 
-void BMI270BMM150Sensor::checkStatus(int retry, StatusCallback callback) {
+void BMI270Sensor::checkStatus(int retry, StatusCallback callback) {
   uint8_t status = 0;
 
   if (!this->read_byte(STATUS_ADDR, &status) || retry == 0) {
@@ -714,7 +714,7 @@ void BMI270BMM150Sensor::checkStatus(int retry, StatusCallback callback) {
   callback(true);
 }
 
-// bool BMI270BMM150Sensor::auxWriteRegister8(uint8_t reg, uint8_t data)
+// bool BMI270Sensor::auxWriteRegister8(uint8_t reg, uint8_t data)
 // {
 //   _(AUX_WR_DATA_ADDR, &data); // Value to write to AUX sensor
 //   _(AUX_WR_ADDR, &reg);       // Register number to write to AUX sensor
@@ -731,7 +731,7 @@ void BMI270BMM150Sensor::checkStatus(int retry, StatusCallback callback) {
 //   return retry;
 // }
 
-// uint8_t BMI270BMM150Sensor::auxReadRegister8(uint8_t reg)
+// uint8_t BMI270Sensor::auxReadRegister8(uint8_t reg)
 // {
 //   uint8_t aux_enable_rw = 0x80;
 //   _(AUX_IF_CONF_ADDR, &aux_enable_rw); // enable read write. Burst length 1
@@ -749,7 +749,7 @@ void BMI270BMM150Sensor::checkStatus(int retry, StatusCallback callback) {
 //   return read_register(AUX_X_LSB_ADDR, &data, 1);
 // }
 
-BMI270BMM150Sensor::imu_spec_t BMI270BMM150Sensor::getImuRawData(imu_raw_data_t *data)
+BMI270Sensor::imu_spec_t BMI270Sensor::getImuRawData(imu_raw_data_t *data)
 {
   imu_spec_t res = imu_spec_none;
   uint8_t intstat = 0;
@@ -781,14 +781,6 @@ BMI270BMM150Sensor::imu_spec_t BMI270BMM150Sensor::getImuRawData(imu_raw_data_t 
         ESP_LOGVV(TAG, "gyroX: %02X", buf[7]);
         res = (imu_spec_t)(res | imu_spec_gyro);
       }
-      if (intstat & 0x20u)
-      {
-        data->mag.x = buf[0] >> 2;
-        data->mag.y = buf[1] >> 2;
-        data->mag.z = buf[2] & 0xFFFE;
-        ESP_LOGVV(TAG, "magX: %02X", buf[0]);
-        res = (imu_spec_t)(res | imu_spec_mag);
-      }
     }
   }
   ESP_LOGVV(TAG, "imu returned spec: %02X", res);
@@ -796,7 +788,7 @@ BMI270BMM150Sensor::imu_spec_t BMI270BMM150Sensor::getImuRawData(imu_raw_data_t 
 }
 
 
-void BMI270BMM150Sensor::getImuData(imu_data_t *data) {
+void BMI270Sensor::getImuData(imu_data_t *data) {
   imu_spec_t spec = getImuRawData(&raw_data_);
 
   // TODO:
@@ -816,15 +808,10 @@ void BMI270BMM150Sensor::getImuData(imu_data_t *data) {
       data->gyro.y = raw_data_.gyro.y * convert_param_.gyro_res;
       data->gyro.z = raw_data_.gyro.z * convert_param_.gyro_res;
     }
-    if (spec & imu_spec_mag) {
-      data->mag.x = raw_data_.mag.x * convert_param_.mag_res;
-      data->mag.y = raw_data_.mag.y * convert_param_.mag_res;
-      data->mag.z = raw_data_.mag.z * convert_param_.mag_res;
-    }
   }
 }
 
-bool BMI270BMM150Sensor::getTemp(float *t)
+bool BMI270Sensor::getTemp(float *t)
 {
   std::int16_t temp;
   bool res = this->read_register(TEMPERATURE_0_ADDR, (std::uint8_t*)&temp, 2);
@@ -836,7 +823,7 @@ bool BMI270BMM150Sensor::getTemp(float *t)
   return res;
 }
 
-void BMI270BMM150Sensor::dump_config() {
+void BMI270Sensor::dump_config() {
   ESP_LOGCONFIG(TAG, "BMI270:");
   LOG_I2C_DEVICE(this);
   if (this->is_failed()) {
@@ -852,7 +839,7 @@ void BMI270BMM150Sensor::dump_config() {
   LOG_SENSOR("  ", "Temperature", this->temperature_sensor_);
 }
 
-bool BMI270BMM150Sensor::read_register_(uint8_t reg, uint8_t data) {
+bool BMI270Sensor::read_register_(uint8_t reg, uint8_t data) {
   if (this->is_failed()) {
     ESP_LOGD(TAG, "Device marked failed");
     return false;
@@ -870,7 +857,7 @@ bool BMI270BMM150Sensor::read_register_(uint8_t reg, uint8_t data) {
   return true;
 }
 
-bool BMI270BMM150Sensor::write_register_(uint8_t reg, const uint8_t *value, size_t len) {
+bool BMI270Sensor::write_register_(uint8_t reg, const uint8_t *value, size_t len) {
   if (this->is_failed()) {
     ESP_LOGD(TAG, "Device marked failed");
     return false;
@@ -888,7 +875,7 @@ bool BMI270BMM150Sensor::write_register_(uint8_t reg, const uint8_t *value, size
   return true;
 }
 
-void BMI270BMM150Sensor::update() {
+void BMI270Sensor::update() {
   if (!this->setup_complete_) {
     return;
   }
@@ -900,7 +887,7 @@ void BMI270BMM150Sensor::update() {
     ESP_LOGVV(TAG, "temperature: %.1f°C", temperature);
   }
     
-  BMI270BMM150Sensor::imu_data_t data;
+  BMI270Sensor::imu_data_t data;
   getImuData(&data);
   
   float gyro_x = (float) data.gyro.x;
@@ -909,18 +896,13 @@ void BMI270BMM150Sensor::update() {
   float accel_x = (float) data.accel.x;
   float accel_y = (float) data.accel.y;
   float accel_z = (float) data.accel.z;
-  float mag_x = (float) data.mag.x;
-  float mag_y = (float) data.mag.y;
-  float mag_z = (float) data.mag.z;
 
   ESP_LOGD(TAG,
     "Got accel={x=%.3f m/s², y=%.3f m/s², z=%.3f m/s²}, "
     "gyro={x=%.3f °/s, y=%.3f °/s, z=%.3f °/s}, "
-    "mag={x=%.3f m/s², y=%.3f m/s², z=%.3f m/s²}, "
     "temp=%.1f°C",
     accel_x, accel_y, accel_z,
     gyro_x, gyro_y, gyro_z, 
-    mag_x, mag_y, mag_z,
     temperature);
 
 
@@ -938,20 +920,13 @@ void BMI270BMM150Sensor::update() {
   if (this->gyro_z_sensor_ != nullptr)
     this->gyro_z_sensor_->publish_state(gyro_z);
 
-  if (this->mag_x_sensor_ != nullptr)
-    this->mag_x_sensor_->publish_state(mag_x);
-  if (this->mag_y_sensor_ != nullptr)
-    this->mag_y_sensor_->publish_state(mag_y);
-  if (this->mag_z_sensor_ != nullptr)
-    this->mag_z_sensor_->publish_state(mag_z);
-
   if (this->temperature_sensor_ != nullptr)
     this->temperature_sensor_->publish_state(temperature);
 
   this->status_clear_warning();
 }
 
-float BMI270BMM150Sensor::get_setup_priority() const { return setup_priority::DATA; }
+float BMI270Sensor::get_setup_priority() const { return setup_priority::DATA; }
 
-}  // namespace bmi270_bmm150
+}  // namespace bmi270
 }  // namespace esphome
