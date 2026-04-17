@@ -54,7 +54,7 @@ class BMI270Sensor : public PollingComponent, public i2c::I2CDevice {
     {
       union
       {
-        int16_t value[10] = { 0, };
+        int16_t value[7] = { 0, };
         point3d_i16_t sensor[2];
         struct
         {
@@ -69,7 +69,7 @@ class BMI270Sensor : public PollingComponent, public i2c::I2CDevice {
     {
       union
       {
-        float value[2];
+        float value[3];
         struct
         {
           float x;
@@ -84,7 +84,7 @@ class BMI270Sensor : public PollingComponent, public i2c::I2CDevice {
       union
       {
         float value[9];
-        imu_3d_t sensor[3];
+        imu_3d_t sensor[2];
         struct
         {
           imu_3d_t accel;
