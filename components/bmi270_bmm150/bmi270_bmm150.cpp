@@ -647,11 +647,9 @@ void BMI270Sensor::internal_setup_auxilliary_sensor_(int stage, int retry) {
           return;
         }
 
-        specification_ = (imu_spec_t)(imu_spec_accel | imu_spec_gyro | imu_spec_mag);
+        specification_ = (imu_spec_t)(imu_spec_accel | imu_spec_gyro);
         uint8_t fcu_write_en = 0x4F;
         write_register_(AUX_IF_CONF_ADDR, &fcu_write_en); // FCU_WRITE_EN + Manual BurstLength 8 + BurstLength 8
-        uint8_t bmm150_data_lsb = 0x42;
-        write_register_(AUX_RD_ADDR, &bmm150_data_lsb);  // 0x42 = BMM150 I2C Data X LSB reg
         uint8_t temp_en = 0x0F;
         write_register_(PWR_CTRL_ADDR, &temp_en); // temp en | ACC en | GYR en | AUX en
         
@@ -757,7 +755,7 @@ BMI270Sensor::imu_spec_t BMI270Sensor::getImuRawData(imu_raw_data_t *data)
   ESP_LOGVV(TAG, "intstat: %02X", intstat);
   if (intstat & 0xE0)
   {
-    std::int16_t buf[10];
+    std::int16_t buf[7];
     auto buffer = this->read_register(AUX_X_LSB_ADDR, (std::uint8_t*)&buf, 20);
     ESP_LOGVV(TAG, "buf: %02X, buffer: %02X", buf, buffer);
 
@@ -767,18 +765,18 @@ BMI270Sensor::imu_spec_t BMI270Sensor::getImuRawData(imu_raw_data_t *data)
     {
       if (intstat & 0x80u)
       {
-        data->accel.x = buf[4];
-        data->accel.y = buf[5];
-        data->accel.z = buf[6];
-        ESP_LOGVV(TAG, "accelX: %02X", buf[4]);
+        data->accel.x = buf[1];
+        data->accel.y = buf[2];
+        data->accel.z = buf[3];
+        ESP_LOGVV(TAG, "accelX: %02X", buf[1]);
         res = (imu_spec_t)(res | imu_spec_accel);
       }
       if (intstat & 0x40u)
       {
-        data->gyro.x = buf[7];
-        data->gyro.y = buf[8];
-        data->gyro.z = buf[9];
-        ESP_LOGVV(TAG, "gyroX: %02X", buf[7]);
+        data->gyro.x = buf[4];
+        data->gyro.y = buf[5];
+        data->gyro.z = buf[6];
+        ESP_LOGVV(TAG, "gyroX: %02X", buf[4]);
         res = (imu_spec_t)(res | imu_spec_gyro);
       }
     }
