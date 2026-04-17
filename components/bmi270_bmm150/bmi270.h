@@ -5,16 +5,15 @@
 #include "esphome/components/i2c/i2c.h"
 
 namespace esphome {
-namespace bmi270_bmm150 {
+namespace bmi270 {
 
-class BMI270BMM150Sensor : public PollingComponent, public i2c::I2CDevice {
+class BMI270Sensor : public PollingComponent, public i2c::I2CDevice {
   public:
     enum imu_spec_t
     {
       imu_spec_none  = 0,
       imu_spec_accel = 0b0001,
       imu_spec_gyro  = 0b0010,
-      imu_spec_mag   = 0b0100,
     };
 
     void setup() override;
@@ -30,9 +29,6 @@ class BMI270BMM150Sensor : public PollingComponent, public i2c::I2CDevice {
     void set_gyro_x_sensor(sensor::Sensor *gyro_x_sensor) { gyro_x_sensor_ = gyro_x_sensor; }
     void set_gyro_y_sensor(sensor::Sensor *gyro_y_sensor) { gyro_y_sensor_ = gyro_y_sensor; }
     void set_gyro_z_sensor(sensor::Sensor *gyro_z_sensor) { gyro_z_sensor_ = gyro_z_sensor; }
-    void set_mag_x_sensor(sensor::Sensor *mag_x_sensor) { mag_x_sensor_ = mag_x_sensor; }
-    void set_mag_y_sensor(sensor::Sensor *mag_y_sensor) { mag_y_sensor_ = mag_y_sensor; }
-    void set_mag_z_sensor(sensor::Sensor *mag_z_sensor) { mag_z_sensor_ = mag_z_sensor; }
     void set_temperature_sensor(sensor::Sensor *temperature_sensor) { temperature_sensor_ = temperature_sensor; }
 
     imu_spec_t get_specification() const { return specification_; }
@@ -59,12 +55,11 @@ class BMI270BMM150Sensor : public PollingComponent, public i2c::I2CDevice {
       union
       {
         int16_t value[10] = { 0, };
-        point3d_i16_t sensor[3];
+        point3d_i16_t sensor[2];
         struct
         {
           point3d_i16_t accel;
           point3d_i16_t gyro;
-          point3d_i16_t mag;
           int16_t temp;
         } __attribute__((__packed__));
       };
@@ -74,7 +69,7 @@ class BMI270BMM150Sensor : public PollingComponent, public i2c::I2CDevice {
     {
       union
       {
-        float value[3];
+        float value[2];
         struct
         {
           float x;
@@ -94,7 +89,6 @@ class BMI270BMM150Sensor : public PollingComponent, public i2c::I2CDevice {
         {
           imu_3d_t accel;
           imu_3d_t gyro;
-          imu_3d_t mag;
         };
       };
     };
@@ -103,7 +97,6 @@ class BMI270BMM150Sensor : public PollingComponent, public i2c::I2CDevice {
     {
         float accel_res = 8.0f / 32768.0f;
         float gyro_res = 2000.0f / 32768.0f;
-        float mag_res = 10.0f * 4912.0f / 32768.0f;
         float temp_res = 1.0f / 512.0f;
         float temp_offset = 23.0f;
     };
@@ -132,9 +125,6 @@ class BMI270BMM150Sensor : public PollingComponent, public i2c::I2CDevice {
     sensor::Sensor *gyro_x_sensor_{nullptr};
     sensor::Sensor *gyro_y_sensor_{nullptr};
     sensor::Sensor *gyro_z_sensor_{nullptr};
-    sensor::Sensor *mag_x_sensor_{nullptr};
-    sensor::Sensor *mag_y_sensor_{nullptr};
-    sensor::Sensor *mag_z_sensor_{nullptr};
     sensor::Sensor *temperature_sensor_{nullptr};
 
     bool setup_complete_{false};
@@ -150,5 +140,5 @@ class BMI270BMM150Sensor : public PollingComponent, public i2c::I2CDevice {
     imu_convert_param_t convert_param_;
 };
 
-}  // namespace bmi270_bmm150
+}  // namespace bmi270
 }  // namespace esphome
