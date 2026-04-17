@@ -754,7 +754,7 @@ BMI270Sensor::imu_spec_t BMI270Sensor::getImuRawData(imu_raw_data_t *data)
   uint8_t intstat = 0;
   this->read_register(INT_STATUS_1_ADDR, &intstat, 1);
   ESP_LOGVV(TAG, "intstat: %02X", intstat);
-  if (intstat & 0xE0)
+  if (intstat & 0xC0) //E0
   {
     std::int16_t buf[7];
     auto buffer = this->read_register(ACC_X_LSB_ADDR, (std::uint8_t*)&buf, 12);
