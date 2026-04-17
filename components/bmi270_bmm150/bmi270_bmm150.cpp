@@ -461,6 +461,7 @@ static constexpr const uint8_t AUX_WR_DATA_ADDR        = 0x4F;
 static constexpr const uint8_t AUX_WR_ADDR             = 0x4E;
 static constexpr const uint8_t AUX_RD_ADDR             = 0x4D;
 static constexpr const uint8_t AUX_X_LSB_ADDR          = 0x04;
+static constexpr const uint8_t ACC_X_LSB_ADDR          = 0x0C;
 static constexpr const uint8_t STATUS_ADDR             = 0x03;
 static constexpr const uint8_t INT_STATUS_1_ADDR       = 0x1D;
 static constexpr const uint8_t TEMPERATURE_0_ADDR      = 0x22;
@@ -756,7 +757,7 @@ BMI270Sensor::imu_spec_t BMI270Sensor::getImuRawData(imu_raw_data_t *data)
   if (intstat & 0xE0)
   {
     std::int16_t buf[7];
-    auto buffer = this->read_register(AUX_X_LSB_ADDR, (std::uint8_t*)&buf, 20);
+    auto buffer = this->read_register(ACC_X_LSB_ADDR, (std::uint8_t*)&buf, 12);
     ESP_LOGVV(TAG, "buf: %02X, buffer: %02X", buf, buffer);
 
     //TODO: Acceleration & Gyro are switched (!), though the following does it like this
