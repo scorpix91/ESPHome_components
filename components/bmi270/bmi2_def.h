@@ -78,27 +78,6 @@ static constexpr const uint8_t BMI2_NVM_PROG_CMD                             = 0
 static constexpr const uint8_t BMI2_SOFT_RESET_CMD                           = 0xB6;
 static constexpr const uint8_t BMI2_FIFO_FLUSH_CMD                           = 0xB0;
 
-// addresses - see https://github.com/m5stack/M5Unified/blob/master/src/utility/imu/BMI270_Class.hpp
-// static constexpr const uint8_t CHIP_ID                 = = 0x00;
-// static constexpr const uint8_t CMD_REG_ADDR            = = 0x7E;
-// static constexpr const uint8_t PWR_CONF_ADDR           = = 0x7C;
-// static constexpr const uint8_t INIT_CTRL_ADDR          = = 0x59;
-// static constexpr const uint8_t INT_MAP_DATA_ADDR       = = 0x58;
-// static constexpr const uint8_t INIT_ADDR_0             = = 0x5B;
-// static constexpr const uint8_t INIT_DATA_ADDR          = = 0x5E;
-// static constexpr const uint8_t INTERNAL_STATUS_ADDR    = = 0x21;
-// static constexpr const uint8_t IF_CONF_ADDR            = = 0x6B;
-// static constexpr const uint8_t PWR_CTRL_ADDR           = = 0x7D;
-// static constexpr const uint8_t ACC_X_LSB_ADDR          = = 0x0C; // start add ACC
-// static constexpr const uint8_t ACC_CONF                = = 0x40; // set acc config
-// static constexpr const uint8_t STATUS_ADDR             = = 0x03;
-// static constexpr const uint8_t INT_STATUS_1_ADDR       = = 0x1D;
-// static constexpr const uint8_t TEMPERATURE_0_ADDR      = = 0x22;
-
-// commands
-// static constexpr const uint8_t SOFT_RESET_CMD          = = 0xB6;
-
-
 /******************************************************************************/
 /*! @name       Accelerometer Macro Definitions               */
 /******************************************************************************/
