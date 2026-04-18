@@ -1,0 +1,46 @@
+substitutions:
+  device_name: bmi270                       # hostname & entity_id
+  friendly_name: "bmi270"                   # Displayed in HA frontend
+  board: ESP32C6                           # ESP32 board
+  GPIO_SDA: 3
+  GPIO_SCL: 6
+
+# logger:: DEBUG
+
+esphome:
+  name: $friendly_name
+  project:
+    name: esphome.bmi270
+    version: "1.0.0" 
+
+esp32:
+  variant: $board
+  framework:
+    type: esp-idf
+
+external_components:
+  - source: components
+
+sensor:
+  - platform: bmi270
+    update_interval: 5s
+    acceleration_x:
+      name: "IMU Accel X"
+    acceleration_y:
+      name: "IMU Accel Y"
+    acceleration_z:
+      name: "IMU Accel z"
+    gyroscope_x:
+      name: "IMU Gyro X"
+    gyroscope_y:
+      name: "IMU Gyro Y"
+    gyroscope_z:
+      name: "IMU Gyro z"
+    temperature:
+      name: "IMU Temperature"
+
+i2c:
+  sda: $GPIO_SDA
+  scl: $GPIO_SCL
+  scan: false # Disable I2C scan to speed up boot time
+  frequency: 400kHz
