@@ -91,6 +91,14 @@ class BMI270Sensor : public PollingComponent, public i2c::I2CDevice {
       };
     };
 
+    /*
+ * As per datasheet, Zero-g offset : +/- 20mg
+ *
+ * In range 2G,  1G is 16384. so, 16384 x 20 x (10 ^ -3) = 328
+ * In range 4G,  1G is 8192.  so,  8192 x 20 x (10 ^ -3) = 164
+ * In range 8G,  1G is 4096.  so,  4096 x 20 x (10 ^ -3) = 82
+ * In range 16G, 1G is 2048.  so,  2048 x 20 x (10 ^ -3) = 41
+ */
     struct imu_convert_param_t
     {
         float accel_res = 8.0f / 32768.0f;

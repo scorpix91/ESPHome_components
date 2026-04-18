@@ -3,32 +3,12 @@
 
 #include "bmi270.h"
 #include "bmi270_config.h"
+#include "bmi2_def.h"
 
 namespace esphome {
 namespace bmi270 {
 
 static const char *const TAG = "bmi270";
-
-// addresses - see https://github.com/m5stack/M5Unified/blob/master/src/utility/imu/BMI270_Class.hpp
-static constexpr const uint8_t CHIP_ID                 = 0x00;
-static constexpr const uint8_t CMD_REG_ADDR            = 0x7E;
-static constexpr const uint8_t PWR_CONF_ADDR           = 0x7C;
-static constexpr const uint8_t INIT_CTRL_ADDR          = 0x59;
-static constexpr const uint8_t INT_MAP_DATA_ADDR       = 0x58;
-static constexpr const uint8_t INIT_ADDR_0             = 0x5B;
-static constexpr const uint8_t INIT_DATA_ADDR          = 0x5E;
-static constexpr const uint8_t INTERNAL_STATUS_ADDR    = 0x21;
-static constexpr const uint8_t IF_CONF_ADDR            = 0x6B;
-static constexpr const uint8_t PWR_CTRL_ADDR           = 0x7D;
-static constexpr const uint8_t ACC_X_LSB_ADDR          = 0x0C; // start add ACC
-static constexpr const uint8_t ACC_RANGE               = 0x41; // set acc range 2, 4, 8, 16g
-static constexpr const uint8_t ACC_CONF                = 0x40; // set acc config
-static constexpr const uint8_t STATUS_ADDR             = 0x03;
-static constexpr const uint8_t INT_STATUS_1_ADDR       = 0x1D;
-static constexpr const uint8_t TEMPERATURE_0_ADDR      = 0x22;
-
-// commands
-static constexpr const uint8_t SOFT_RESET_CMD          = 0xB6;
 
 void BMI270Sensor::setup() {
   this->internal_setup_(0);
@@ -43,7 +23,7 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
       // check correct communication (chip_id needs to return 0x24)
       ESP_LOGCONFIG(TAG, "Setting up BMI270 ...");
       uint8_t chipid = 0;
-      if (this->read_byte(CHIP_ID, &chipid) && chipid != 0x24) {
+      if (this->read_byte(BMI2_CHIP_ID_ADDR, &chipid) && chipid != 0x24) {
         ESP_LOGE(TAG, "Communication error. chipid=%02X", chipid);
         this->mark_failed();
       }
@@ -51,7 +31,7 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
       // perform soft-reset to bring all register values to default
       ESP_LOGD(TAG, "Soft reset...");
       // don't check whether this succeeds, as you will get i2c::ERROR_NOT_ACKNOWLEDGED 
-      this->write_register_(CMD_REG_ADDR, &SOFT_RESET_CMD);
+      this->write_register_(BMI2_CMD_REG_ADDR, &BMI2_SOFT_RESET_CMD);
       
       ESP_LOGV(TAG, "Waiting for successful soft reset ...");
       // wait 2ms according to API, retry 3 times
@@ -65,7 +45,7 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
       uint8_t power_conf;
       ESP_LOGVV(TAG, "Waiting ... (retry: %d)", retry);
       // check if PWR_CONF is not 0
-      if (!this->read_byte(PWR_CONF_ADDR, &power_conf) || retry == 0) {
+      if (!this->read_byte(BMI2_PWR_CONF_ADDR, &power_conf) || retry == 0) {
         ESP_LOGE(TAG, "Power config error. retry=%d", retry);
         this->mark_failed();
         return;
@@ -76,7 +56,7 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
 
       ESP_LOGD(TAG, "Soft reset sucessful (power_conf=%02X). Disabling advanced power save mode ...", power_conf); //power_conf default is 0x03
       uint8_t power_save_disabled = 0x00;
-      write_register_(PWR_CONF_ADDR, &power_save_disabled); // disable advanced power save mode
+      write_register_(BMI2_PWR_CONF_ADDR, &power_save_disabled); // disable advanced power save mode
       // wait for minimum 450μs, waiting 500μs
       this->set_timeout(0.5, [this]() { this->internal_setup_(2); });
 
@@ -86,12 +66,12 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
       // load initial configuration
       ESP_LOGV(TAG, "Prepare config load");
       uint8_t init_ctrl = 0x00;
-      write_register_(INIT_CTRL_ADDR, &init_ctrl); // prepare config load
+      write_register_(BMI2_INIT_CTRL_ADDR, &init_ctrl); // prepare config load
       bool upload_succesful = _upload_file(DEFAULT_CONFIGURATION, sizeof(DEFAULT_CONFIGURATION)); // burst write to reg INIT_DATA start with byte 0
       init_ctrl = 0x01;
-      write_register_(INIT_CTRL_ADDR, &init_ctrl); // complete config load
+      write_register_(BMI2_INIT_CTRL_ADDR, &init_ctrl); // complete config load
       uint8_t int_map_data = 0xFF;
-      write_register_(INT_MAP_DATA_ADDR, &int_map_data, 1);
+      write_register_(BMI2_INT_MAP_DATA_ADDR, &int_map_data, 1);
 
       // return the IMU specification
       if (!upload_succesful)
@@ -110,7 +90,7 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
       uint8_t internal_status = 0;
 
       // check if internal_status is 1
-      if (!this->read_byte(INTERNAL_STATUS_ADDR, &internal_status) || retry == 0) {
+      if (!this->read_byte(BMI2_INTERNAL_STATUS_ADDR, &internal_status) || retry == 0) {
         ESP_LOGE(TAG, "Internal status error. retry=%d", retry);
         this->mark_failed();
         return;
@@ -124,7 +104,7 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
       ESP_LOGD(TAG, "Config loaded successfully (internal_status: %d)", internal_status);
 
       uint8_t temp_en = 0x0E; // 1110
-      write_register_(PWR_CTRL_ADDR, &temp_en); // Enable temp | ACC | GYR
+      write_register_(BMI2_PWR_CTRL_ADDR, &temp_en); // Enable temp | ACC | GYR
       
       this->setup_complete_ = true;
       ESP_LOGCONFIG(TAG, "Setup complete without auxilliary sensor!");
@@ -146,8 +126,8 @@ bool BMI270Sensor::_upload_file(const uint8_t *config_data, size_t write_len)
   };
 
   if (config_data != nullptr
-    && this->write_register_( INIT_ADDR_0, addr_array, 2 )
-    && this->write_register_( INIT_DATA_ADDR, (uint8_t *)config_data, write_len))
+    && this->write_register_( BMI2_INIT_ADDR_0, addr_array, 2 )
+    && this->write_register_( BMI2_INIT_DATA_ADDR, (uint8_t *)config_data, write_len))
   {
     return true;
   }
@@ -157,7 +137,7 @@ bool BMI270Sensor::_upload_file(const uint8_t *config_data, size_t write_len)
 void BMI270Sensor::checkStatus(int retry, StatusCallback callback) {
   uint8_t status = 0;
 
-  if (!this->read_byte(STATUS_ADDR, &status) || retry == 0) {
+  if (!this->read_byte(BMI2_STATUS_ADDR, &status) || retry == 0) {
     ESP_LOGW(TAG, "Status error. retry=%d", retry);
     this->status_set_warning();
     callback(false);
@@ -174,12 +154,12 @@ BMI270Sensor::imu_spec_t BMI270Sensor::getImuRawData(imu_raw_data_t *data)
 {
   imu_spec_t res = imu_spec_none;
   uint8_t intstat = 0;
-  this->read_register(INT_STATUS_1_ADDR, &intstat, 1);
+  this->read_register(BMI2_INT_STATUS_1_ADDR, &intstat, 1);
   ESP_LOGVV(TAG, "intstat: %02X", intstat);
   if (intstat & 0xC0) //E0
   {
     std::int16_t buf[6];
-    auto buffer = this->read_register(ACC_X_LSB_ADDR, (std::uint8_t*)&buf, 12);
+    auto buffer = this->read_register(BMI2_ACC_X_LSB_ADDR, (std::uint8_t*)&buf, 12);
     ESP_LOGVV(TAG, "buf: %02X, buffer: %02X", buf, buffer);
 
     //TODO: Acceleration & Gyro are switched (!), though the following does it like this
@@ -235,7 +215,7 @@ void BMI270Sensor::getImuData(imu_data_t *data) {
 bool BMI270Sensor::getTemp(float *t)
 {
   std::int16_t temp;
-  bool res = this->read_register(TEMPERATURE_0_ADDR, (std::uint8_t*)&temp, 2);
+  bool res = this->read_register(BMI2_TEMPERATURE_0_ADDR, (std::uint8_t*)&temp, 2);
   ESP_LOGVV(TAG, "raw temp: %02X",temp);
   if (res == esphome::i2c::NO_ERROR) {
     *t = temp * convert_param_.temp_res + convert_param_.temp_offset;
