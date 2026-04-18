@@ -31,7 +31,7 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
       // perform soft-reset to bring all register values to default
       ESP_LOGD(TAG, "Soft reset...");
       // don't check whether this succeeds, as you will get i2c::ERROR_NOT_ACKNOWLEDGED 
-      this->write_register_(BMI2_CMD_REG_ADDR, &BMI2_SOFT_RESET_CMD);
+      this->write_register_(BMI2_CMD_REG_ADDR, BMI2_SOFT_RESET_CMD);
       
       ESP_LOGV(TAG, "Waiting for successful soft reset ...");
       // wait 2ms according to API, retry 3 times
