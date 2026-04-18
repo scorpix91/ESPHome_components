@@ -2,6 +2,7 @@
 #include "esphome/core/log.h"
 
 #include "bmi270.h"
+#include "bmi270_config.h"
 
 namespace esphome {
 namespace bmi270 {
