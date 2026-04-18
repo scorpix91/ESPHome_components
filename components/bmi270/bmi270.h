@@ -101,8 +101,8 @@ class BMI270Sensor : public PollingComponent, public i2c::I2CDevice {
  */
     struct imu_convert_param_t
     {
-        // float accel_res = 8.0f / 32768.0f;
-        float accel_res = 2.0f / 32768.0f;
+        float accel_res = 8.0f / 32768.0f;
+        // float accel_res = 2.0f / 32768.0f;
         float gyro_res = 2000.0f / 32768.0f;
         float temp_res = 1.0f / 512.0f;
         float temp_offset = 23.0f;

@@ -113,6 +113,9 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
       if(!write_register_(BMI2_ACC_CONF_ADDR, &temp_acc)){
         ESP_LOGE(TAG, "Setting Acc error");
       } // Config ACC
+      std::int16_t buf[2];
+      auto buffer = this->read_register(BMI2_ACC_CONF_ADDR, (std::uint8_t*)&buf, 2);
+      ESP_LOGD(TAG, "Settings ACC buf: %02X, buffer: %02X", buf, buffer);
       
       this->setup_complete_ = true;
       ESP_LOGCONFIG(TAG, "Setup complete without auxilliary sensor!");
