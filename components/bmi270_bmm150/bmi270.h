@@ -21,8 +21,6 @@ class BMI270Sensor : public PollingComponent, public i2c::I2CDevice {
     void update() override;
     float get_setup_priority() const override;
 
-    void set_auxilliary_sensor_address(uint8_t aux_address) { this->auxilliary_sensor_address_ = aux_address; }
-
     void set_accel_x_sensor(sensor::Sensor *accel_x_sensor) { accel_x_sensor_ = accel_x_sensor; }
     void set_accel_y_sensor(sensor::Sensor *accel_y_sensor) { accel_y_sensor_ = accel_y_sensor; }
     void set_accel_z_sensor(sensor::Sensor *accel_z_sensor) { accel_z_sensor_ = accel_z_sensor; }
@@ -83,7 +81,7 @@ class BMI270Sensor : public PollingComponent, public i2c::I2CDevice {
     {
       union
       {
-        float value[9];
+        float value[6];
         imu_3d_t sensor[2];
         struct
         {
@@ -102,7 +100,6 @@ class BMI270Sensor : public PollingComponent, public i2c::I2CDevice {
     };
 
     void internal_setup_(int stage, int retry = 1);
-    void internal_setup_auxilliary_sensor_(int stage, int retry = 1);
 
     bool _upload_file(const uint8_t *config_data, size_t write_len);
 
@@ -131,10 +128,6 @@ class BMI270Sensor : public PollingComponent, public i2c::I2CDevice {
     esphome::i2c::ErrorCode last_error_;
 
     imu_spec_t specification_{imu_spec_none};
-
-    bool enable_auxilliary_sensor_{false};
-    //TODO: Make configurable in component
-    uint8_t auxilliary_sensor_address_{0x10};
 
     imu_raw_data_t raw_data_;
     imu_convert_param_t convert_param_;
