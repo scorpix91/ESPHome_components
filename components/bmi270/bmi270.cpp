@@ -20,6 +20,7 @@ static constexpr const uint8_t INIT_DATA_ADDR          = 0x5E;
 static constexpr const uint8_t INTERNAL_STATUS_ADDR    = 0x21;
 static constexpr const uint8_t IF_CONF_ADDR            = 0x6B;
 static constexpr const uint8_t PWR_CTRL_ADDR           = 0x7D;
+static constexpr const uint8_t ACC_X_LSB_ADDR          = 0x0C; // start add ACC
 static constexpr const uint8_t ACC_RANGE               = 0x41; // set acc range 2, 4, 8, 16g
 static constexpr const uint8_t ACC_CONF                = 0x40; // set acc config
 static constexpr const uint8_t STATUS_ADDR             = 0x03;
