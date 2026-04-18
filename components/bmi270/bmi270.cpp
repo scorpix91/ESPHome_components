@@ -108,7 +108,7 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
         ESP_LOGE(TAG, "Enable Temp Acc Gyro error");
       } // Enable temp | ACC | GYR
 
-      // setBMI270_AccRange(&BMI2_ACC_RANGE_2G);
+      setBMI270_AccRange(&BMI2_ACC_RANGE_2G);
       
       this->setup_complete_ = true;
       ESP_LOGCONFIG(TAG, "Setup complete without auxilliary sensor!");
@@ -154,7 +154,7 @@ void BMI270Sensor::checkStatus(int retry, StatusCallback callback) {
   callback(true);
 }
 
-uint8_t BMI270Sensor::setBMI270_AccRange(const uint8_t *config_data){
+void BMI270Sensor::setBMI270_AccRange(const uint8_t *config_data){
   // set ACC param
   if(!write_register_(BMI2_ACC_RANGE_ADDR, config_data)){
     ESP_LOGE(TAG, "Setting Acc range error");
@@ -315,7 +315,7 @@ void BMI270Sensor::update() {
   float accel_z = (float) data.accel.z;
 
   ESP_LOGD(TAG,
-    "Got accel={x=%.3f m/s², y=%.3f m/s², z=%.3f m/s²}, "
+    "Got accel={x=%.3f g, y=%.3f g, z=%.3f g}, "
     "gyro={x=%.3f °/s, y=%.3f °/s, z=%.3f °/s}, "
     "temp=%.1f°C",
     accel_x, accel_y, accel_z,

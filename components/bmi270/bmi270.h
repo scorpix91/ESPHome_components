@@ -110,7 +110,7 @@ class BMI270Sensor : public PollingComponent, public i2c::I2CDevice {
     using StatusCallback = std::function<void(bool)>;
     void checkStatus(int retry = 1, StatusCallback callback = [](bool) {});
 
-    uint8_t setBMI270_AccRange(const uint8_t *config_data);
+    void setBMI270_AccRange(const uint8_t *config_data);
 
     imu_spec_t getImuRawData(imu_raw_data_t* data);
     void getImuData(imu_data_t* data);

@@ -12,7 +12,7 @@ from esphome.const import (
     CONF_GYROSCOPE_Z,
     DEVICE_CLASS_TEMPERATURE,
     STATE_CLASS_MEASUREMENT,
-    UNIT_METER_PER_SECOND_SQUARED,
+    UNIT_G,
     ICON_ACCELERATION_X,
     ICON_ACCELERATION_Y,
     ICON_ACCELERATION_Z,
@@ -31,7 +31,7 @@ BMI270Sensor = bmi270_ns.class_(
 )
 
 accel_schema = {
-    "unit_of_measurement": UNIT_METER_PER_SECOND_SQUARED,
+    "unit_of_measurement": UNIT_G,
     "accuracy_decimals": 2,
     "state_class": STATE_CLASS_MEASUREMENT,
 }
