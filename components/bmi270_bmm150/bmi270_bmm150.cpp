@@ -462,6 +462,7 @@ static constexpr const uint8_t AUX_WR_ADDR             = 0x4E;
 static constexpr const uint8_t AUX_RD_ADDR             = 0x4D;
 static constexpr const uint8_t AUX_X_LSB_ADDR          = 0x04;
 static constexpr const uint8_t ACC_X_LSB_ADDR          = 0x0C;
+static constexpr const uint8_t ACC_RANGE               = 0x41; // set acc range 2, 4, 8, 16g
 static constexpr const uint8_t STATUS_ADDR             = 0x03;
 static constexpr const uint8_t INT_STATUS_1_ADDR       = 0x1D;
 static constexpr const uint8_t TEMPERATURE_0_ADDR      = 0x22;
