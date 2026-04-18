@@ -110,7 +110,7 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
 
       // set ACC param
       // uint8_t temp_acc = BMI2_ACC_ODR_25HZ | BMI2_ACC_RANGE_2G | BMI2_ACC_NORMAL_AVG4 | BMI2_PERF_OPT_MODE ;
-      if(!write_register_(BMI2_ACC_RANGE_ADDR, BMI2_ACC_RANGE_2G)){
+      if(!write_register_(BMI2_ACC_RANGE_ADDR, &BMI2_ACC_RANGE_2G)){
         ESP_LOGE(TAG, "Setting Acc range error");
       } // Config ACC
 
