@@ -193,3 +193,10 @@ static constexpr const uint8_t BMI2_GYR_OIS_RANGE_POS                        = 0
 static constexpr const uint8_t BMI2_GYR_BW_PARAM_POS                         = 0x04;
 static constexpr const uint8_t BMI2_GYR_NOISE_PERF_MODE_POS                  = 0x06;
 static constexpr const uint8_t BMI2_GYR_FILTER_PERF_MODE_POS                 = 0x07;
+
+/*! @name Accelerometer and Gyroscope Filter/Noise performance modes */
+/* Power optimized mode */
+static constexpr const uint8_t BMI2_POWER_OPT_MODE                           = 0;
+
+/* Performance optimized  */
+static constexpr const uint8_t BMI2_PERF_OPT_MODE                            = 1;
