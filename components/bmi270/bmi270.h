@@ -91,18 +91,10 @@ class BMI270Sensor : public PollingComponent, public i2c::I2CDevice {
       };
     };
 
-    /*
- * As per datasheet, Zero-g offset : +/- 20mg
- *
- * In range 2G,  1G is 16384. so, 16384 x 20 x (10 ^ -3) = 328
- * In range 4G,  1G is 8192.  so,  8192 x 20 x (10 ^ -3) = 164
- * In range 8G,  1G is 4096.  so,  4096 x 20 x (10 ^ -3) = 82
- * In range 16G, 1G is 2048.  so,  2048 x 20 x (10 ^ -3) = 41
- */
     struct imu_convert_param_t
     {
-        float accel_res = 8.0f / 32768.0f;
-        // float accel_res = 2.0f / 32768.0f;
+        // float accel_res = 8.0f / 32768.0f; // In range 8G
+        float accel_res = 2.0f / 32768.0f; // In range 2G
         float gyro_res = 2000.0f / 32768.0f;
         float temp_res = 1.0f / 512.0f;
         float temp_offset = 23.0f;
@@ -118,7 +110,7 @@ class BMI270Sensor : public PollingComponent, public i2c::I2CDevice {
     using StatusCallback = std::function<void(bool)>;
     void checkStatus(int retry = 1, StatusCallback callback = [](bool) {});
 
-    uint8_t getBMI270_AccRange();
+    uint8_t setBMI270_AccRange(const uint8_t *config_data);
 
     imu_spec_t getImuRawData(imu_raw_data_t* data);
     void getImuData(imu_data_t* data);

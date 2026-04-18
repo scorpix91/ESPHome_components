@@ -108,15 +108,7 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
         ESP_LOGE(TAG, "Enable Temp Acc Gyro error");
       } // Enable temp | ACC | GYR
 
-      // set ACC param
-      // uint8_t temp_acc = BMI2_ACC_ODR_25HZ | BMI2_ACC_RANGE_2G | BMI2_ACC_NORMAL_AVG4 | BMI2_PERF_OPT_MODE ;
-      if(!write_register_(BMI2_ACC_RANGE_ADDR, &BMI2_ACC_RANGE_2G)){
-        ESP_LOGE(TAG, "Setting Acc range error");
-      } // Config ACC
-
-      std::int8_t buf;
-      auto buffer = this->read_register(BMI2_ACC_RANGE_ADDR, (std::uint8_t*)&buf, 1);
-      ESP_LOGD(TAG, "Settings RANGE ACC buf: %02X, buffer: %02X", buf, buffer);
+      setBMI270_AccRange(&BMI2_ACC_RANGE_2G);
       
       this->setup_complete_ = true;
       ESP_LOGCONFIG(TAG, "Setup complete without auxilliary sensor!");
@@ -161,6 +153,18 @@ void BMI270Sensor::checkStatus(int retry, StatusCallback callback) {
   }
   callback(true);
 }
+
+uint8_t BMI270Sensor::setBMI270_AccRange(const uint8_t *config_data){
+  // set ACC param
+  if(!write_register_(BMI2_ACC_RANGE_ADDR, config_data)){
+    ESP_LOGE(TAG, "Setting Acc range error");
+  } // Config ACC
+
+  std::int8_t buf;
+  auto buffer = this->read_register(BMI2_ACC_RANGE_ADDR, (std::uint8_t*)&buf, 1);
+  ESP_LOGD(TAG, "Settings RANGE ACC buf: %02X, buffer: %02X", buf, buffer);
+}
+
 
 BMI270Sensor::imu_spec_t BMI270Sensor::getImuRawData(imu_raw_data_t *data)
 {
