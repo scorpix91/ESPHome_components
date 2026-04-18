@@ -109,10 +109,11 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
       } // Enable temp | ACC | GYR
 
       // set ACC param
-      uint8_t temp_acc = BMI2_ACC_ODR_25HZ | BMI2_ACC_RANGE_2G | BMI2_ACC_NORMAL_AVG4 | BMI2_PERF_OPT_MODE ;
-      if(!write_register_(BMI2_ACC_CONF_ADDR, &temp_acc)){
-        ESP_LOGE(TAG, "Setting Acc error");
+      // uint8_t temp_acc = BMI2_ACC_ODR_25HZ | BMI2_ACC_RANGE_2G | BMI2_ACC_NORMAL_AVG4 | BMI2_PERF_OPT_MODE ;
+      if(!write_register_(BMI2_ACC_RANGE_ADDR, BMI2_ACC_RANGE_2G)){
+        ESP_LOGE(TAG, "Setting Acc range error");
       } // Config ACC
+
       std::int8_t buf;
       auto buffer = this->read_register(BMI2_ACC_RANGE_ADDR, (std::uint8_t*)&buf, 1);
       ESP_LOGD(TAG, "Settings RANGE ACC buf: %02X, buffer: %02X", buf, buffer);
