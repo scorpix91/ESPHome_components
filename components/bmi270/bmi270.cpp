@@ -104,11 +104,15 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
       ESP_LOGD(TAG, "Config loaded successfully (internal_status: %d)", internal_status);
 
       uint8_t temp_en = 0x0E; // 1110
-      write_register_(BMI2_PWR_CTRL_ADDR, &temp_en); // Enable temp | ACC | GYR
+      if (!write_register_(BMI2_PWR_CTRL_ADDR, &temp_en)){
+        ESP_LOGE(TAG, "Enable Temp Acc Gyro error");
+      } // Enable temp | ACC | GYR
 
       // set ACC param
       uint8_t temp_acc = BMI2_ACC_ODR_25HZ | BMI2_ACC_RANGE_2G | BMI2_ACC_NORMAL_AVG4 | BMI2_PERF_OPT_MODE ;
-      write_register_(BMI2_ACC_CONF_ADDR, &temp_acc); // Config ACC
+      if(!write_register_(BMI2_ACC_CONF_ADDR, &temp_acc)){
+        ESP_LOGE(TAG, "Setting Acc error");
+      } // Config ACC
       
       this->setup_complete_ = true;
       ESP_LOGCONFIG(TAG, "Setup complete without auxilliary sensor!");
