@@ -108,7 +108,7 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
         ESP_LOGE(TAG, "Enable Temp Acc Gyro error");
       } // Enable temp | ACC | GYR
 
-      setBMI270_AccRange(&BMI2_ACC_RANGE_2G);
+      // setBMI270_AccRange(&BMI2_ACC_RANGE_2G);
       
       this->setup_complete_ = true;
       ESP_LOGCONFIG(TAG, "Setup complete without auxilliary sensor!");
