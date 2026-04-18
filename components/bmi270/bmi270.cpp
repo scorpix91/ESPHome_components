@@ -116,6 +116,7 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
       std::int8_t buf;
       auto buffer = this->read_register(BMI2_ACC_RANGE_ADDR, (std::uint8_t*)&buf, 1);
       ESP_LOGD(TAG, "Settings RANGE ACC buf: %02X, buffer: %02X", buf, buffer);
+      ESP_LOGD(TAG, "Get RANGE ACC : %02X", getBMI270_AccRange());
       
       this->setup_complete_ = true;
       ESP_LOGCONFIG(TAG, "Setup complete without auxilliary sensor!");
@@ -159,6 +160,25 @@ void BMI270Sensor::checkStatus(int retry, StatusCallback callback) {
     return;
   }
   callback(true);
+}
+
+uint8_t BMI270Sensor::getBMI270_AccRange() {
+  uint8_t rangeValue = 0xFF; // Valeur par défaut en cas d'erreur
+
+  // 1. Pointer vers le registre 0x41
+  Wire.beginTransmission(BMI2_I2C_PRIM_ADDR); // Adresse I2C du BMI270
+  Wire.write(BMI2_ACC_RANGE_ADDR);             // Adresse du registre ACC_RANGE
+  if (Wire.endTransmission(false) != 0) { // 'false' pour un "Restart"
+    return 0xFF; 
+  }
+
+  // 2. Lire 1 octet
+  Wire.requestFrom(0x68, 1);
+  if (Wire.available()) {
+    rangeValue = Wire.read();
+  }
+
+  return rangeValue;
 }
 
 BMI270Sensor::imu_spec_t BMI270Sensor::getImuRawData(imu_raw_data_t *data)
