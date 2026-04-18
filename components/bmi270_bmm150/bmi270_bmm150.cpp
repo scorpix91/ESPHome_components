@@ -470,7 +470,6 @@ static constexpr const uint8_t TEMPERATURE_0_ADDR      = 0x22;
 static constexpr const uint8_t SOFT_RESET_CMD          = 0xB6;
 
 void BMI270Sensor::setup() {
-  enable_auxilliary_sensor_ = false;
   this->internal_setup_(0);
 }
 
@@ -563,107 +562,18 @@ void BMI270Sensor::internal_setup_(int stage, int retry) {
       specification_ = (imu_spec_t)(imu_spec_accel | imu_spec_gyro);
       ESP_LOGD(TAG, "Config loaded successfully (internal_status: %d)", internal_status);
 
-      if (enable_auxilliary_sensor_) {
-        ESP_LOGD(TAG, "Enabling auxilliary sensor...");
-        this->internal_setup_auxilliary_sensor_(0);
-      } else {
-        this->setup_complete_ = true;
-        ESP_LOGCONFIG(TAG, "Setup complete without auxilliary sensor!");
-        ESP_LOGD(TAG, "IMU Spec: %d", specification_);
-      }
-
-      break;
-    }
-  }
-}
-
-void BMI270Sensor::internal_setup_auxilliary_sensor_(int stage, int retry) {
-  switch (stage) {
-    case 0: {
-
-      uint8_t reg_data;
-      this->read_byte(IF_CONF_ADDR, &reg_data);
-      ESP_LOGVV(TAG, "reg_data: %02X", reg_data);
-
-      // set up auxiliary sensor
-      uint8_t aux_i2c_enable = 0x20;
-      write_register_(IF_CONF_ADDR, &aux_i2c_enable); // AUX I2C enable.
-      uint8_t pwr_save_disable = 0x00;
-      write_register_(PWR_CONF_ADDR, &pwr_save_disable); // Power save disabled.
-      uint8_t aux_sensor_disable = 0x0E;
-      write_register_(PWR_CTRL_ADDR, &aux_sensor_disable); // Power save disabled.
-      uint8_t aux_if_conf = 0x80;
-      write_register_(AUX_IF_CONF_ADDR, &aux_if_conf);
-      uint8_t ic2_add_op = auxilliary_sensor_address_ << 1;  // 0x10 = BMM150 I2C Addr
-      write_register_(AUX_DEV_ID_ADDR, &ic2_add_op);
-
-      // aux software reset & power on
-      uint8_t aux_swreset = 0x83;
-      write_register_(AUX_WR_DATA_ADDR, &aux_swreset);
-      uint8_t aux_register = 0x4B;
-      write_register_(AUX_WR_ADDR, &aux_register);
-
-      this->internal_setup_auxilliary_sensor_(1, 3);
-
-      break;
-    }
-    case 1: {
-      // check if the auxiliary sensor is correctly set up
-      this->checkStatus( retry, [this, retry](bool success) {
-        if (!success) {
-          ESP_LOGW(TAG, "Auxiliary status error. retry=%d", retry);
-          this->status_set_warning();
-          return;
-        }
-
-        uint8_t aux_enable_rw = 0x80;
-        write_register_(AUX_IF_CONF_ADDR, &aux_enable_rw); // enable read write
-        uint8_t aux_read_address = 0x40;
-        write_register_(AUX_RD_ADDR, &aux_read_address); // register number to read from AUX sensor
-
-        this->internal_setup_auxilliary_sensor_(2);
-      });
+      uint8_t temp_en = 0x0E; // 1110
+      write_register_(PWR_CTRL_ADDR, &temp_en); // Enable temp | ACC | GYR
+      
+      this->setup_complete_ = true;
+      ESP_LOGCONFIG(TAG, "Setup complete without auxilliary sensor!");
+      ESP_LOGD(TAG, "IMU Spec: %d", specification_);
       
       break;
     }
-    case 2: {
-      uint8_t whoami = 0;
-      if (this->read_byte(AUX_X_LSB_ADDR, &whoami) && whoami == 0x32) {
-        // aux normal mode / ODR 30Hz
-        uint8_t normal_mode = 0x38;
-        write_register_(AUX_WR_DATA_ADDR, &normal_mode);
-        uint8_t aux_register = 0x4C;
-        write_register_(AUX_WR_ADDR, &aux_register);
-
-        this->internal_setup_auxilliary_sensor_(3, 3);
-      }
-
-      break;
-    }
-    case 3: {
-      this->checkStatus( retry, [this, retry](bool success) {
-        if (!success) {
-          ESP_LOGW(TAG, "Auxiliary status error. retry=%d", retry);
-          this->status_set_warning();
-          return;
-        }
-
-        specification_ = (imu_spec_t)(imu_spec_accel | imu_spec_gyro);
-        uint8_t fcu_write_en = 0x4F;
-        write_register_(AUX_IF_CONF_ADDR, &fcu_write_en); // FCU_WRITE_EN + Manual BurstLength 8 + BurstLength 8
-        uint8_t temp_en = 0x0F;
-        write_register_(PWR_CTRL_ADDR, &temp_en); // temp en | ACC en | GYR en | AUX en
-        
-
-        this->setup_complete_ = true;
-        ESP_LOGCONFIG(TAG, "Setup complete!");
-        ESP_LOGD(TAG, "IMU Spec: %d", specification_);
-
-        return;
-      });
-    }
   }
 }
+
 
 bool BMI270Sensor::_upload_file(const uint8_t *config_data, size_t write_len)
 {
@@ -683,20 +593,6 @@ bool BMI270Sensor::_upload_file(const uint8_t *config_data, size_t write_len)
   return true;
 }
 
-// bool BMI270Sensor::auxSetupMode(uint8_t i2c_addr)
-// {
-//   uint8_t aux_i2c_enable = 0x01;
-//   _(IF_CONF_ADDR, &aux_i2c_enable); // AUX I2C enable.
-//   uint8_t pwr_save_disable = 0x00;
-//   _(PWR_CONF_ADDR, &pwr_save_disable); // Power save disabled.
-//   uint8_t aux_sensor_disable = 0x0E;
-//   _(PWR_CTRL_ADDR, &aux_sensor_disable); // Power save disabled.
-//   uint8_t aux_if_conf = 0x80;
-//   _(AUX_IF_CONF_ADDR, &aux_if_conf);
-//   uint8_t ic2_add_op = i2c_addr << 1;
-//   return _(AUX_DEV_ID_ADDR, &ic2_add_op);
-// }
-
 void BMI270Sensor::checkStatus(int retry, StatusCallback callback) {
   uint8_t status = 0;
 
@@ -712,41 +608,6 @@ void BMI270Sensor::checkStatus(int retry, StatusCallback callback) {
   }
   callback(true);
 }
-
-// bool BMI270Sensor::auxWriteRegister8(uint8_t reg, uint8_t data)
-// {
-//   _(AUX_WR_DATA_ADDR, &data); // Value to write to AUX sensor
-//   _(AUX_WR_ADDR, &reg);       // Register number to write to AUX sensor
-//   int retry = 3;
-//   data = 0;
-//   do {
-//     vTaskDelay(1);
-//     //todo: replace with internal method
-//     this->read_register(STATUS_ADDR, &data, 1);
-//     ESP_LOGD(TAG, "STATUS_ADDR: %d", data);
-//   }
-//   while (data & 0b100 && --retry); //checks whether the third bit of data is set
-
-//   return retry;
-// }
-
-// uint8_t BMI270Sensor::auxReadRegister8(uint8_t reg)
-// {
-//   uint8_t aux_enable_rw = 0x80;
-//   _(AUX_IF_CONF_ADDR, &aux_enable_rw); // enable read write. Burst length 1
-//   _(AUX_RD_ADDR, &reg);                // register number to read from AUX sensor
-//   int retry = 3;
-//   uint8_t data = 0;
-//   do {
-//     vTaskDelay(1);
-//     //todo: replace with internal method
-//     this->read_register(STATUS_ADDR, &data, 1);
-//     ESP_LOGD(TAG, "STATUS_ADDR: %d", data);
-//   }
-//   while (data & 0b100 && --retry);
-
-//   return read_register(AUX_X_LSB_ADDR, &data, 1);
-// }
 
 BMI270Sensor::imu_spec_t BMI270Sensor::getImuRawData(imu_raw_data_t *data)
 {
