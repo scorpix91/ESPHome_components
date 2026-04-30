@@ -21,7 +21,7 @@ An ESPHome external component for the **STMicroelectronics LIS3DH / LIS3DHTR** â
 
 ```yaml
 external_components:
-  - source: github://scorpix/ESPHome_components/components/LIS3DHTR
+  - source: github://scorpix91/ESPHome_components/components/LIS3DHTR
 
 i2c:
   sda: GPIO21
