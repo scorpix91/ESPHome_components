@@ -1,6 +1,8 @@
-# BMI270 ESPHome Component
+# ESPHome Component
 
-An ESPHome external component for the **Bosch BMI270** 6-axis IMU (3-axis accelerometer + 3-axis gyroscope with integrated temperature sensor).
+An ESPHome external component for the 
+  **Bosch BMI270** 6-axis IMU (3-axis accelerometer + 3-axis gyroscope with integrated temperature sensor).
+  **STMicroelectronics LIS3DH / LIS3DHTR** — ultra-low-power 3-axis MEMS accelerometer with an optional on-chip temperature sensor.
 
 ## Features
 
@@ -14,16 +16,18 @@ An ESPHome external component for the **Bosch BMI270** 6-axis IMU (3-axis accele
 
 ## Minimal configuration
 
+Go to the component folder to see detailed features.
+
 ```yaml
 external_components:
-  - source: github://scorpix/ESPHome_components/components/bmi270
+  - source: github://scorpix/ESPHome_components/components/...
 
 i2c:
   sda: GPIO21
   scl: GPIO22
 
 sensor:
-  - platform: bmi270
+  - platform: ...
     acceleration_x:
       name: "Accel X"
     acceleration_y:
